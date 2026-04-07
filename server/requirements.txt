@@ -1,0 +1,26 @@
+# ── Server runtime dependencies ──────────────────────────────────────────────
+# Core OpenEnv framework (provides the HTTP/WS server scaffolding)
+openenv-core[core]>=0.2.2
+
+# Data validation & serialisation
+pydantic>=2.0.0
+
+# Numerical compute (used in gym_env.py, grader.py, and the environment)
+numpy>=1.24.0
+
+# Reinforcement-learning & environment interfaces
+gymnasium>=1.2.3
+stable-baselines3[extra]>=2.8.0
+shimmy>=2.0.0
+
+# Deep-learning backend required by stable-baselines3
+torch>=2.1.0
+
+# HTTP server used by app.py main()
+uvicorn>=0.27.0
+
+# OpenAI client (used in inference.py at the project root)
+openai>=1.0.0
+
+# Environment variable loading (.env support)
+python-dotenv>=1.0.0

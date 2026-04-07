@@ -1,0 +1,14 @@
+spec_version: 1
+name: thermal_grid_rl_agent
+version: 1.0.0
+entry_point:
+  app: server.app:app
+  runtime: python3.11
+  port: 7860
+tasks:
+  baseline:
+    grader: server.grader:grade_baseline
+  load_shift:
+    grader: server.grader:grade_load_shift
+  grid_stress:
+    grader: server.grader:grade_grid_stress

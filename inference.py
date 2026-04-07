@@ -62,13 +62,28 @@ else:
 # LLM-BASED INTELLIGENT AGENT
 # ============================================================================
 
-SYSTEM_PROMPT = """You control a datacenter's cooling system. Optimize for safety (CPU<85°C), low PUE (<1.25), and low energy cost.
+SYSTEM_PROMPT = """You are an expert datacenter cooling control agent. Your goal is to maximize the reward by dynamically adjusting cooling based on current conditions.
 
-Respond with ONLY a JSON object (no markdown, no explanation):
-{"crac":16.0,"fans":[75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0,75.0],"chillers":3}
+You must respond with a JSON object containing EXACTLY these keys:
+{"crac_setpoint_c": 16.0, "fan_speeds_pct": [75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0, 75.0], "num_active_chillers": 3}
 
-Rules: crac=12-27°C (lower=more cooling), fans=20-100% (×10 values), chillers=1-4.
-If CPU>60°C or DR=1: increase cooling. If price>0.10: reduce consumption."""
+Rules:
+- crac_setpoint_c: 12-27°C (lower = more cooling, higher = save energy)
+- fan_speeds_pct: 20-100% (exactly 10 values, one per rack). Power scales as speed³, so small reductions save huge energy.
+- num_active_chillers: 1-4 (fewer chillers at higher load is more efficient than many at low load)
+
+Decision Guidelines:
+- If max CPU > 60°C: INCREASE cooling (lower crac, raise fans, add chillers)
+- If max CPU < 50°C and PUE > 1.20: REDUCE cooling to improve PUE (raise crac, lower fans)
+- If demand_response (DR) = 1: Reduce energy consumption while keeping CPU < 85°C
+- If energy price > $0.08/kWh: Favor energy-efficient settings (higher crac, lower fans, fewer chillers)
+- If ambient > 35°C: You MUST use aggressive cooling (crac ≤ 15°C, fans ≥ 80%, 3+ chillers)
+- If temperatures are moderate (50-58°C): Use balanced settings (crac 16-18°C, fans 70-75%, 2-3 chillers)
+
+CRITICAL: Do NOT repeat the same action if reward dropped or is below 0.90. Adjust based on what the environment tells you.
+Adapt every step — the environment state changes, and your action should too.
+
+Respond with ONLY the JSON object. No markdown, no explanation."""
 
 
 def build_user_message(obs: ThermalGridRlAgentObservation, step: int, task: str) -> str:

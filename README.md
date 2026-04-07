@@ -1,11 +1,7 @@
 ---
 title: Thermal Grid RL Agent Environment
 emoji: 🏭
-colorFrom: purple
-colorTo: blue
 sdk: docker
-pinned: false
-app_port: 8000
 base_path: /
 tags:
   - openenv
@@ -35,7 +31,7 @@ tags:
 
 ---
 
-## 🎯 Motivation & Real-World Utility
+## 🎯 Motivation & Description
 
 ### The Problem
 Modern AI datacenters face three competing objectives:
@@ -49,12 +45,12 @@ Modern AI datacenters face three competing objectives:
 - **Grid integration** is becoming critical as renewable energy penetration increases
 
 ### What This Environment Models
-✅ Physics-based thermal dynamics with thermal mass lag  
-✅ CRAC units, VFD fans, chiller stacking with real efficiency curves  
-✅ Time-of-use energy pricing from Indian grid data  
-✅ Carbon intensity variations (solar/wind peaks)  
-✅ Demand-response events during peak hours  
-✅ Batch job scheduling for temporal load shifting  
+- Physics-based thermal dynamics with thermal mass lag
+- CRAC units, VFD fans, chiller stacking with real efficiency curves
+- Time-of-use energy pricing from Indian grid data
+- Carbon intensity variations (solar/wind peaks)
+- Demand-response events during peak hours
+- Batch job scheduling for temporal load shifting
 
 ---
 
@@ -162,33 +158,17 @@ pip install -e .
 ### 3. Configure Environment Variables
 Create a `.env` file in the project root:
 ```env
-# API Configuration
 HF_TOKEN=your_huggingface_token_here
 API_BASE_URL=https://router.huggingface.co/v1
 MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
-
-# Environment Server
 ENV_URL=http://localhost:8000
-
-# Real-World Data Integration (Optional)
-USE_REAL_DATA=true
-DC_CITY=Bengaluru
-GRID_REGION=Western
 ```
 
 ### 4. Start the Environment Servers
 
 **Option A: Using the start script (recommended)**
 ```bash
-# Linux/macOS
 bash start.sh
-
-# Windows (Git Bash)
-bash start.sh
-
-# Or manually:
-python -m uvicorn mock_data_server:app --host 0.0.0.0 --port 8001 &
-python -m uvicorn server.app:app --host 0.0.0.0 --port 8000 &
 ```
 
 **Option B: Using Docker**
@@ -206,19 +186,13 @@ Servers will be available at:
 python inference.py
 ```
 
-This will:
-1. Connect to the environment server
-2. Run all 3 tasks sequentially
-3. Output structured logs in `[START]` / `[STEP]` / `[END]` format
-4. Print final scores for each task
+This runs all 3 tasks sequentially and outputs structured logs in `[START]` / `[STEP]` / `[END]` format.
 
 ### 6. Validate with OpenEnv
 ```bash
 pip install openenv-core
 openenv validate
 ```
-
-Expected output: `[OK] thermal_grid_rl_agent: Ready for multi-mode deployment`
 
 ---
 
@@ -243,81 +217,45 @@ curl http://localhost:8000/health
 1. Create a new Space at https://huggingface.co/new-space
 2. Select **Docker** as the SDK
 3. Push your code to the Space repository
-4. Add environment variables in Space settings:
-   - `HF_TOKEN`
-   - `API_BASE_URL`
-   - `MODEL_NAME`
+4. Add environment variables in Space settings: `HF_TOKEN`, `API_BASE_URL`, `MODEL_NAME`
 
 ---
 
 ## 🤖 Agent Scripts
 
-This environment supports **two types of agents**: an LLM-based agent (required baseline) and a traditional RL agent (optional for advanced users).
-
-### ✅ Required: LLM Baseline Agent
-
-**Script:** `inference.py`
-
-This is the **official baseline agent** used for evaluation. It uses a large language model (LLLM) via the OpenAI-compatible API to make control decisions.
-
-**How it works:**
-1. Connects to the environment server
-2. For each step, sends observation to LLM and receives action
-3. Runs all 3 tasks (baseline, load_shift, grid_stress)
-4. Outputs structured logs in `[START]` / `[STEP]` / `[END]` format
-
-**Usage:**
-```bash
-python inference.py
-```
-
-**Model:** Qwen/Qwen2.5-72B-Instruct (via Hugging Face Router API)
-
-### 🔧 Optional: RL Training Pipeline (Advanced)
-
-These scripts demonstrate that the environment is **fully compatible with traditional reinforcement learning algorithms** (e.g., PPO). They are **not required for evaluation** but are included for advanced users who want to train custom RL agents.
-
 | Script | Purpose |
 |--------|---------|
-| `train_rl.py` | Train a PPO agent from scratch using Stable-Baselines3 |
-| `inference_rl.py` | Evaluate a trained RL model |
-| `analyze_agent.py` | Analyze inference logs and generate intelligence dashboard |
-| `server/gym_env.py` | Gymnasium wrapper that converts Pydantic actions to vectorized format |
-
-**Usage (Optional):**
-```bash
-# Train PPO agent
-python train_rl.py --task baseline --steps 10000
-
-# Evaluate trained model
-python inference_rl.py --task baseline --model models/ppo_baseline_final
-```
-
-**Note:** These scripts require additional dependencies (`stable-baselines3`, `gymnasium`) and are **not used during official evaluation**. The judges will only run `inference.py`.
+| `inference.py` | **Required** — Baseline LLM agent for evaluation |
+| `train_rl.py` | Optional — Train a PPO agent using Stable-Baselines3 |
+| `inference_rl.py` | Optional — Evaluate a trained RL model |
+| `server/gym_env.py` | Gymnasium wrapper for RL training |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-openenv_demo/
-├── inference.py                      # Baseline LLM agent (required for submission)
+thermal_grid_rl_agent/
+├── inference.py                      # Baseline LLM agent (required)
 ├── client.py                         # HTTP/WebSocket client for environment
 ├── models.py                         # Pydantic Action/Observation schemas
 ├── hybrid_signal_generator.py        # Real-world grid data integration
 ├── mock_data_server.py               # Mock API for Indian energy data
+├── train_rl.py                       # Optional: Train PPO agent
+├── inference_rl.py                   # Optional: Evaluate trained RL model
+├── openenv.yaml                      # OpenEnv manifest
+├── pyproject.toml                    # Dependencies
+├── Dockerfile                        # Containerized deployment
+├── start.sh                          # Server startup script
+├── data/                             # CSV data for India weather & energy
+│   ├── india_2000_2024_daily_weather.csv
+│   ├── india_monthly_full_release.csv
+│   └── region-metadata.csv
 ├── server/
 │   ├── thermal_grid_rl_agent_environment.py  # Core physics simulator
 │   ├── app.py                        # FastAPI server with OpenEnv interface
 │   ├── gym_env.py                    # Gymnasium wrapper for RL training
 │   └── grader.py                     # Task-specific graders (0.0-1.0 scores)
-├── train_rl.py                       # Optional: Train PPO agent
-├── inference_rl.py                   # Optional: Evaluate trained RL model
-├── analyze_agent.py                  # Optional: Analyze inference logs
-├── openenv.yaml                      # OpenEnv manifest
-├── pyproject.toml                    # Dependencies
-├── Dockerfile                        # Containerized deployment
-├── start.sh                          # Server startup script
 └── README.md                         # This file
 ```
 
@@ -344,23 +282,6 @@ openenv_demo/
 
 ---
 
-## 🧪 Testing & Validation
-
-### Pre-Submission Checklist
-- ✅ `openenv validate` passes
-- ✅ Docker build succeeds
-- ✅ HF Space deploys and responds to `/reset`
-- ✅ Baseline inference runs without errors
-- ✅ 3+ tasks with graders producing 0.0-1.0 scores
-- ✅ Output format matches `[START]/[STEP]/[END]` specification
-
-### Run Validation Script
-```bash
-curl -fsSL https://raw.githubusercontent.com/varsha7772001/openenv_demo/main/scripts/validate-submission.sh | bash -s -- https://your-space.hf.space
-```
-
----
-
 ## 📚 References & Inspiration
 
 - **Google DeepMind:** "Data Center Cooling with Deep Reinforcement Learning" (2016)
@@ -369,7 +290,5 @@ curl -fsSL https://raw.githubusercontent.com/varsha7772001/openenv_demo/main/scr
 ---
 
 ## 📄 License
-
-This project is licensed under the BSD-style license found in the [LICENSE](LICENSE) file.
 
 Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.

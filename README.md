@@ -287,8 +287,4 @@ thermal_grid_rl_agent/
 - **Google DeepMind:** "Data Center Cooling with Deep Reinforcement Learning" (2016)
 - **DCCluster-Opt:** Digital twin thermal simulator for datacenter cooling optimization
 
----
 
-## 📄 License
-
-Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.

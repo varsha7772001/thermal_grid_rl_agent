@@ -364,10 +364,7 @@ curl -fsSL https://raw.githubusercontent.com/varsha7772001/openenv_demo/main/scr
 ## 📚 References & Inspiration
 
 - **Google DeepMind:** "Data Center Cooling with Deep Reinforcement Learning" (2016)
-- **Affinity Laws:** Fan/pump power scaling with speed
-- **ASHRAE TC 9.9:** Thermal guidelines for data centers
-- **Central Electricity Authority (India):** Real-time grid data
-- **Open-Meteo:** Open-source weather API for ambient temperatures
+- **DCCluster-Opt:** Digital twin thermal simulator for datacenter cooling optimization
 
 ---
 
@@ -376,13 +373,3 @@ curl -fsSL https://raw.githubusercontent.com/varsha7772001/openenv_demo/main/scr
 This project is licensed under the BSD-style license found in the [LICENSE](LICENSE) file.
 
 Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
-
----
-
-## 👥 Team
-
-Built for the **OpenEnv Hackathon** by:
-- **Varsha** ([GitHub](https://github.com/varsha7772001))
-
-**Repository:** https://github.com/varsha7772001/openenv_demo  
-**HF Space:** https://huggingface.co/spaces/varshu23/thermal-grid-rl-agent

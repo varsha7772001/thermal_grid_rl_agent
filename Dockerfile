@@ -74,18 +74,16 @@ ENV PYTHONPATH="/app/env:${PYTHONPATH}"
 # Make startup script executable
 RUN chmod +x /app/env/start.sh
 
-# Port 8000 — HF Spaces public port (Environment Server)
-# Port 8001 — Internal only (Mock Data Server)
-ENV ENV_PORT=8000
+# HF Spaces will provide $PORT environment variable (default 7860)
+# The start.sh script reads this and starts the app on the correct port
 ENV MOCK_PORT=8001
 
-EXPOSE 8000
-EXPOSE 8001
+EXPOSE 7860
 
-# Health check on the environment server port
+# Health check on the main exposed port
 # start-period=40s gives mock server time to load CSVs before env server starts
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=5 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:${PORT:-7860}/health || exit 1
 
 # Launch both servers via start.sh
 CMD ["/app/env/start.sh"]

@@ -3,8 +3,8 @@
 
 PYTHON=$(command -v python3 || command -v python)
 
-# HF Spaces provides $PORT (usually 7860) - use it!
-MAIN_PORT=${PORT:-7860}
+# Main server port (default 8000 for local development)
+MAIN_PORT=${PORT:-8000}
 MOCK_PORT=${MOCK_PORT:-8001}
 
 echo "===== Application Startup at $(date -u +%Y-%m-%dT%H:%M:%SZ) ====="

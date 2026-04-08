@@ -10,9 +10,10 @@ The agent:
 4. Optimizes for task-specific grading criteria
 
 Environment Variables:
-    HF_TOKEN       - Hugging Face / API key
-    API_BASE_URL   - API endpoint for the LLM
-    MODEL_NAME     - Model identifier for inference
+    API_BASE_URL   - The API endpoint for the LLM (provided by OpenEnv validator)
+    API_KEY        - API key for the LLM proxy (provided by OpenEnv validator)
+    HF_TOKEN       - Your Hugging Face / API key (fallback if API_KEY not provided)
+    MODEL_NAME     - The model identifier to use for inference
     ENV_URL        - URL of the thermal grid environment server (default: http://localhost:8000)
 """
 
@@ -36,8 +37,10 @@ logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
-HF_TOKEN   = os.environ.get("HF_TOKEN") or os.environ.get("OPENAI_API_KEY")
-API_BASE   = os.environ.get("API_BASE_URL", os.environ.get("OPENAI_API_BASE", "https://router.huggingface.co/v1"))
+# Priority: Use API_BASE_URL and API_KEY from OpenEnv validator (LiteLLM proxy)
+# Fallback: HF_TOKEN for manual testing
+API_BASE   = os.environ.get("API_BASE_URL")
+API_KEY    = os.environ.get("API_KEY") or os.environ.get("HF_TOKEN")
 MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 ENV_URL    = os.environ.get("ENV_URL", "http://localhost:8000")
 BENCHMARK  = "thermal_grid_rl_agent"
@@ -51,11 +54,13 @@ TASKS = [
     ThermalGridTaskID.GRID_STRESS,
 ]
 
-if HF_TOKEN:
-    client = AsyncOpenAI(api_key=HF_TOKEN, base_url=API_BASE)
+if API_BASE and API_KEY:
+    # Initialize OpenAI client with LiteLLM proxy (required by validator)
+    client = AsyncOpenAI(api_key=API_KEY, base_url=API_BASE)
+    logger.info(f"OpenAI client initialized with API_BASE_URL: {API_BASE}")
 else:
     client = None
-    logger.warning("No HF_TOKEN found. Agent will use rule-based control only.")
+    logger.warning("No API_BASE_URL or API_KEY/HF_TOKEN found. Agent will use rule-based control only.")
 
 
 # ============================================================================

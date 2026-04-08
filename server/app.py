@@ -104,38 +104,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add root route for HF Spaces
-from fastapi.responses import HTMLResponse
+# Add root route
+from fastapi.responses import JSONResponse
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def root():
-    return """
-    <html>
-        <head>
-            <title>Thermal Grid RL Agent Environment</title>
-            <style>
-                body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #0d1117; color: #c9d1d9; }
-                a { color: #58a6ff; }
-                code { background: #161b22; padding: 2px 6px; border-radius: 4px; }
-                .endpoint { background: #161b22; padding: 12px 16px; border-radius: 8px; margin: 8px 0; }
-                .method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 8px; }
-                .get { background: #1f6feb; color: white; }
-                .post { background: #238636; color: white; }
-                h1 { border-bottom: 1px solid #30363d; padding-bottom: 12px; }
-            </style>
-        </head>
-        <body>
-            <h1>️ Thermal Grid RL Agent Environment</h1>
-            <p>OpenEnv-compatible environment for data center thermal management reinforcement learning.</p>
-            <h2>API Endpoints</h2>
-            <div class="endpoint"><span class="method post">POST</span><code>/reset</code> — Reset environment, return initial state</div>
-            <div class="endpoint"><span class="method post">POST</span><code>/step</code> — Execute a control action</div>
-            <div class="endpoint"><span class="method get">GET</span><code>/state</code> — Get current environment state</div>
-            <div class="endpoint"><span class="method get">GET</span><code>/schema</code> — Get action/observation schemas</div>
-            <div class="endpoint"><span class="method get">GET</span><code>/docs</code> — Swagger API documentation</div>
-        </body>
-    </html>
-    """
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Not Found"}
+    )
 
 @app.get("/health")
 async def health():

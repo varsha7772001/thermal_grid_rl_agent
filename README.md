@@ -2,7 +2,7 @@
 title: Thermal Grid RL Agent Environment
 emoji: 🏭
 sdk: docker
-base_path: /
+base_path: /docs
 tags:
   - openenv
   - reinforcement-learning

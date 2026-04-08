@@ -56,21 +56,6 @@ TASKS = [
 ]
 
 
-def _ws_url(url: str) -> str:
-    """
-    HuggingFace Spaces serves over HTTPS only.
-    Convert https:// → wss://  and  http:// → ws://
-    so the WebSocket handshake succeeds.
-    Local http:// servers stay as ws://.
-    """
-    url = url.rstrip("/")
-    if url.startswith("https://"):
-        return url.replace("https://", "wss://", 1)
-    if url.startswith("http://"):
-        return url.replace("http://", "ws://", 1)
-    return url
-
-
 # ============================================================================
 # STDOUT LOGGING
 # ============================================================================
@@ -213,7 +198,7 @@ async def run_task(client: OpenAI, task_id: ThermalGridTaskID) -> None:
     log_start(task=task_id.value, env=BENCHMARK, model=MODEL_NAME)
 
     # _ws_url: https → wss  so HF Spaces WebSocket handshake succeeds
-    env    = ThermalGridRlAgentEnv(base_url=_ws_url(ENV_URL))
+    env    = ThermalGridRlAgentEnv(base_url=ENV_URL)
     grader = ThermalGridGrader(task_id=task_id.value)
     rewards:     List[float] = []
     steps_taken: int         = 0
@@ -279,18 +264,8 @@ async def main() -> None:
     # Client initialised once — matches mandatory OpenEnv sample pattern
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
-    print(f"ENV_URL  : {ENV_URL}",           flush=True)
-    print(f"WS URL   : {_ws_url(ENV_URL)}",  flush=True)
-    print(f"Model    : {MODEL_NAME}",         flush=True)
-    print(f"Tasks    : {[t.value for t in TASKS]}", flush=True)
-    print("=" * 60, flush=True)
-
     for task_id in TASKS:
-        print(f"\nRunning task: {task_id.value}", flush=True)
         await run_task(client, task_id)
-        print("-" * 60, flush=True)
-
-    print("\nAll tasks completed.", flush=True)
 
 
 if __name__ == "__main__":

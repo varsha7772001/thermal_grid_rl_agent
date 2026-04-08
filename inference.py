@@ -37,14 +37,17 @@ logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # --- Configuration ---
-# Priority: Use API_BASE_URL and API_KEY from OpenEnv validator (LiteLLM proxy)
-# Fallback: HF_TOKEN for manual testing
-API_BASE   = os.environ.get("API_BASE_URL")
-API_KEY    = os.environ.get("API_KEY") or os.environ.get("HF_TOKEN")
-MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-ENV_URL    = os.environ.get("ENV_URL", "http://localhost:8000")
-BENCHMARK  = "thermal_grid_rl_agent"
-MAX_STEPS  = 20
+# Validator injects API_BASE_URL and API_KEY — use them for LiteLLM proxy
+API_BASE_URL = os.getenv("API_BASE_URL")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+# Use validator's API_KEY if available, otherwise fallback to HF_TOKEN
+API_KEY = os.getenv("API_KEY") or HF_TOKEN
+
+ENV_URL = os.getenv("ENV_URL", "http://localhost:8000")
+BENCHMARK = "thermal_grid_rl_agent"
+MAX_STEPS = 20
 SUCCESS_SCORE_THRESHOLD = 0.1
 
 # All 3 tasks to evaluate
@@ -54,10 +57,10 @@ TASKS = [
     ThermalGridTaskID.GRID_STRESS,
 ]
 
-if API_BASE and API_KEY:
-    # Initialize OpenAI client with LiteLLM proxy (required by validator)
-    client = AsyncOpenAI(api_key=API_KEY, base_url=API_BASE)
-    logger.info(f"OpenAI client initialized with API_BASE_URL: {API_BASE}")
+if API_BASE_URL and API_KEY:
+    # Initialize OpenAI client with LiteLLM proxy (validator requirement)
+    client = AsyncOpenAI(api_key=API_KEY, base_url=API_BASE_URL)
+    logger.info(f"OpenAI client initialized with API_BASE_URL: {API_BASE_URL}")
 else:
     client = None
     logger.warning("No API_BASE_URL or API_KEY/HF_TOKEN found. Agent will use rule-based control only.")

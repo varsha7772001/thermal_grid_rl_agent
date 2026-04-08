@@ -133,8 +133,6 @@ async def root():
             <div class="endpoint"><span class="method get">GET</span><code>/state</code> — Get current environment state</div>
             <div class="endpoint"><span class="method get">GET</span><code>/schema</code> — Get action/observation schemas</div>
             <div class="endpoint"><span class="method get">GET</span><code>/docs</code> — Swagger API documentation</div>
-            <h2>Links</h2>
-            <p><a href="/docs">📖 API Documentation</a> | <a href="/health">❤️ Health Check</a></p>
         </body>
     </html>
     """

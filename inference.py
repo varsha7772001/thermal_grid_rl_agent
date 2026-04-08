@@ -46,7 +46,7 @@ MODEL_NAME   = os.getenv("MODEL_NAME")  or "Qwen/Qwen2.5-72B-Instruct"
 ENV_URL      = os.getenv("ENV_URL", "http://localhost:8000")
 
 BENCHMARK               = "thermal_grid_rl_agent"
-MAX_STEPS               = 20
+MAX_STEPS               = 10
 SUCCESS_SCORE_THRESHOLD = 0.1
 
 TASKS = [

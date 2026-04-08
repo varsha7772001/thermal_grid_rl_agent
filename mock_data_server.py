@@ -19,6 +19,7 @@ Run:  uvicorn mock_data_server:app --reload --port 8000
 from __future__ import annotations
 
 import os
+import sys
 import random
 from datetime import datetime
 from pathlib import Path
@@ -60,50 +61,60 @@ def load_data():
     if _DATA_LOADED:
         return
     
-    print("[MockServer] Loading weather data …")
-    _weather_df = pd.read_csv(WEATHER_CSV, parse_dates=["date"])
-    # Focus on Delhi as representative Indian DC location
-    _delhi_weather = _weather_df[_weather_df["city"] == "Delhi"].copy()
-    _delhi_weather["month"] = _delhi_weather["date"].dt.month
-    
-    # Build hourly ambient temp by month: use mean of max+min
-    for month in range(1, 13):
-        sub = _delhi_weather[_delhi_weather["month"] == month]
-        if len(sub):
-            _monthly_temp[month] = float(
-                (sub["temperature_2m_max"].mean() + sub["temperature_2m_min"].mean()) / 2
-            )
-        else:
-            _monthly_temp[month] = 25.0
+    try:
+        print("[MockServer] Loading weather data …")
+        if not WEATHER_CSV.exists():
+            raise FileNotFoundError(f"Weather CSV not found: {WEATHER_CSV}")
+        _weather_df = pd.read_csv(WEATHER_CSV, parse_dates=["date"])
+        # Focus on Delhi as representative Indian DC location
+        _delhi_weather = _weather_df[_weather_df["city"] == "Delhi"].copy()
+        _delhi_weather["month"] = _delhi_weather["date"].dt.month
+        
+        # Build hourly ambient temp by month: use mean of max+min
+        for month in range(1, 13):
+            sub = _delhi_weather[_delhi_weather["month"] == month]
+            if len(sub):
+                _monthly_temp[month] = float(
+                    (sub["temperature_2m_max"].mean() + sub["temperature_2m_min"].mean()) / 2
+                )
+            else:
+                _monthly_temp[month] = 25.0
 
-    print("[MockServer] Loading carbon intensity data …")
-    # Pre-filtered: only load CO2 intensity rows (headers: Area, Country code, Date, ..., Variable, Unit, Value, ...)
-    _carbon_df = pd.read_csv(CARBON_CSV, usecols=["Country code", "Variable", "Unit", "Date", "Value"])
-    _india_carbon = _carbon_df[
-        (_carbon_df["Variable"] == "CO2 intensity") &
-        (_carbon_df["Unit"] == "gCO2/kWh")
-    ].copy()
-    _india_carbon["Date"] = pd.to_datetime(_india_carbon["Date"])
-    _india_carbon["month"] = _india_carbon["Date"].dt.month
+        print("[MockServer] Loading carbon intensity data …")
+        if not CARBON_CSV.exists():
+            raise FileNotFoundError(f"Carbon CSV not found: {CARBON_CSV}")
+        # Pre-filtered: only load CO2 intensity rows (headers: Area, Country code, Date, ..., Variable, Unit, Value, ...)
+        _carbon_df = pd.read_csv(CARBON_CSV, usecols=["Country code", "Variable", "Unit", "Date", "Value"])
+        _india_carbon = _carbon_df[
+            (_carbon_df["Variable"] == "CO2 intensity") &
+            (_carbon_df["Unit"] == "gCO2/kWh")
+        ].copy()
+        _india_carbon["Date"] = pd.to_datetime(_india_carbon["Date"])
+        _india_carbon["month"] = _india_carbon["Date"].dt.month
 
-    # Monthly average carbon intensity for India
-    for month in range(1, 13):
-        sub = _india_carbon[_india_carbon["month"] == month]
-        if len(sub) and sub["Value"].notna().any():
-            _monthly_carbon[month] = float(sub["Value"].mean())
-        else:
-            _monthly_carbon[month] = 720.0  # India mean ~720 gCO2/kWh
+        # Monthly average carbon intensity for India
+        for month in range(1, 13):
+            sub = _india_carbon[_india_carbon["month"] == month]
+            if len(sub) and sub["Value"].notna().any():
+                _monthly_carbon[month] = float(sub["Value"].mean())
+            else:
+                _monthly_carbon[month] = 720.0  # India mean ~720 gCO2/kWh
 
-    print("[MockServer] Loading region benchmarks …")
-    _region_df = pd.read_csv(REGION_CSV)
-    # India rows
-    _india_regions = _region_df[_region_df["location"].str.contains("India|Mumbai|Delhi|Hyderabad", na=False)]
-    _india_pue_values = _india_regions["power-usage-efficiency"].dropna().astype(float)
-    INDIA_BENCHMARK_PUE = float(_india_pue_values.mean()) if len(_india_pue_values) else 1.58
-    
-    print(f"[MockServer] India benchmark PUE = {INDIA_BENCHMARK_PUE:.3f}")
-    _DATA_LOADED = True
-    print("[MockServer] All data loaded successfully ✓")
+        print("[MockServer] Loading region benchmarks …")
+        if not REGION_CSV.exists():
+            raise FileNotFoundError(f"Region CSV not found: {REGION_CSV}")
+        _region_df = pd.read_csv(REGION_CSV)
+        # India rows
+        _india_regions = _region_df[_region_df["location"].str.contains("India|Mumbai|Delhi|Hyderabad", na=False)]
+        _india_pue_values = _india_regions["power-usage-efficiency"].dropna().astype(float)
+        INDIA_BENCHMARK_PUE = float(_india_pue_values.mean()) if len(_india_pue_values) else 1.58
+        
+        print(f"[MockServer] India benchmark PUE = {INDIA_BENCHMARK_PUE:.3f}")
+        _DATA_LOADED = True
+        print("[MockServer] All data loaded successfully ✓")
+    except Exception as e:
+        print(f"[MockServer] ERROR: Failed to load data: {e}", file=sys.stderr)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -136,8 +147,6 @@ _SOLAR_FACTOR: list[float] = [
     0.63, 0.65, 0.68, 0.75, 0.82, 0.90,  # 12-17
     0.95, 0.98, 1.00, 1.00, 1.00, 1.00,  # 18-23
 ]
-
-print("[MockServer] All data loaded successfully ✓")
 
 # ---------------------------------------------------------------------------
 # Helper functions (used both by FastAPI routes and HybridSignalGenerator)

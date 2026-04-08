@@ -51,6 +51,11 @@ Usage:
 
 import sys as _sys
 import os as _os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Ensure the project root (parent of this server/ directory) is always on
 # sys.path so that `models` is importable regardless of CWD / launch method.
 _project_root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
@@ -111,15 +116,30 @@ def main(host: str = "0.0.0.0", port: int = 8000):
 
     Args:
         host: Host address to bind to (default: "0.0.0.0")
-        port: Port number to listen on (default: 8000)
+        port: Port number to listen on (default: 8000 or from PORT env var)
+
+    Environment Variables:
+        PORT: Port number to listen on (overrides default)
+        ENABLE_WEB_INTERFACE: If set to "false", exits without starting server
 
     For production deployments, consider using uvicorn directly with
     multiple workers:
         uvicorn thermal_grid_rl_agent.server.app:app --workers 4
     """
-    import uvicorn
+    import sys
 
-    uvicorn.run(app, host=host, port=port)
+    # Check if web interface is enabled
+    enable_web = _os.environ.get("ENABLE_WEB_INTERFACE", "true").lower()
+    if enable_web == "false":
+        print("[Server] Web interface is disabled (ENABLE_WEB_INTERFACE=false)")
+        sys.exit(0)
+
+    # Use PORT from environment if provided
+    actual_port = int(_os.environ.get("PORT", port))
+    print(f"[Server] Starting on {host}:{actual_port}")
+
+    import uvicorn
+    uvicorn.run(app, host=host, port=actual_port)
 
 
 if __name__ == "__main__":

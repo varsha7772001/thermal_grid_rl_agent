@@ -713,9 +713,11 @@ class ThermalGridRlAgentEnvironment(Environment):
                     base_url="http://localhost:8001",
                 )
                 logger.info(
-                    "HybridSignalGenerator active (API=%s). "
+                    "HybridSignalGenerator active (API=%s, real_data=%s). "
                     "India benchmark PUE = %.3f",
-                    use_mock_api, self._hybrid_gen.india_pue_benchmark,
+                    use_mock_api, 
+                    getattr(self._hybrid_gen, '_use_real_data', False),
+                    self._hybrid_gen.india_pue_benchmark,
                 )
             except Exception as exc:
                 logger.warning("Could not init HybridSignalGenerator: %s", exc)

@@ -3,6 +3,7 @@ title: Thermal Grid RL Agent Environment
 emoji: 🏭
 sdk: docker
 base_path: /docs
+app_port: 8000 
 author: varsha komati
 tags:
   - openenv

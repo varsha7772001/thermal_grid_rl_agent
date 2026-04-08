@@ -217,7 +217,7 @@ Servers will be available at:
 python inference.py
 ```
 
-This runs all 3 tasks sequentially (20 steps each) and outputs structured logs in `[START]` / `[STEP]` / `[END]` format.
+This runs all 3 tasks sequentially (10 steps each) and outputs structured logs in `[START]` / `[STEP]` / `[END]` format.
 
 ### 6. Train RL Agent (Optional)
 ```bash
